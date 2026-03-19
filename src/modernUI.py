@@ -59,3 +59,98 @@ class SwitchTile(ft.Container):
                 ft.Container(width=10),
             ],
         )
+
+
+class ColorCircle:
+    def __init__(self, color, on_select):
+        self.color = color
+        self.on_select = on_select
+        self.container = None
+
+    def show(self):
+        self.check_icon = ft.Icon(ft.Icons.CHECK, color=ft.Colors.WHITE, size=20, visible=False)
+
+        self.container = ft.Container(
+            content=self.check_icon,
+            width=45,
+            height=45,
+            bgcolor=self.color,
+            border_radius=ft.BorderRadius.all(100),
+            alignment=ft.Alignment.CENTER,
+            border=ft.Border.all(2, ft.Colors.TRANSPARENT),
+            on_click=lambda e: self.on_select(self),
+        )
+        return self.container
+
+    def set_selected(self, is_selected, do_update=True):
+        if is_selected:
+            self.container.border = ft.Border.all(2, ft.Colors.WHITE)
+            self.check_icon.visible = True
+        else:
+            self.container.border = ft.Border.all(2, ft.Colors.TRANSPARENT)
+            self.check_icon.visible = False
+
+        if do_update:
+            try:
+                self.container.update()
+            except RuntimeError:
+                pass
+
+
+class ColorPaletteBox:
+    def __init__(self, on_color_change):
+        self.on_color_change = on_color_change
+        self.circles = []
+
+        self.all_colors = [
+            ft.Colors.BLUE,
+            ft.Colors.LIGHT_BLUE,
+            ft.Colors.CYAN,
+            ft.Colors.TEAL,
+            ft.Colors.GREEN,
+            ft.Colors.LIGHT_GREEN,
+            ft.Colors.LIME,
+            ft.Colors.YELLOW,
+            ft.Colors.AMBER,
+            ft.Colors.ORANGE,
+            ft.Colors.DEEP_ORANGE,
+            ft.Colors.RED,
+            ft.Colors.PINK,
+            ft.Colors.PURPLE,
+            ft.Colors.DEEP_PURPLE,
+            ft.Colors.INDIGO,
+            ft.Colors.BROWN,
+            ft.Colors.BLUE_GREY,
+        ]
+
+    def handle_select(self, clicked_circle):
+        for circle in self.circles:
+            circle.set_selected(False)
+
+        clicked_circle.set_selected(True)
+        self.on_color_change(clicked_circle.color)
+
+    def build(self):
+        rows = []
+        for i in range(0, 18, 6):
+            line_colors = self.all_colors[i : i + 6]
+            row_controls = []
+            for c in line_colors:
+                circle_instance = ColorCircle(c, self.handle_select)
+                self.circles.append(circle_instance)
+                row_controls.append(circle_instance.show())
+
+            rows.append(ft.Row(controls=row_controls, alignment=ft.MainAxisAlignment.CENTER))
+
+        if self.circles:
+            self.circles[0].set_selected(True, do_update=False)
+
+        return ft.Container(
+            content=ft.Column(controls=rows, alignment=ft.MainAxisAlignment.SPACE_EVENLY, expand=True),
+            width=380,
+            height=220,
+            bgcolor=ft.Colors.GREY_900,
+            border_radius=ft.BorderRadius.all(20),
+            alignment=ft.Alignment.CENTER,
+            padding=10,
+        )
